@@ -2,16 +2,18 @@ import requests
 from bs4 import BeautifulSoup
 
 
-class LinqList(list):
-    def __init__(self, lst):
-        super().__init__()
-        self.extend(lst)
-
-    def where(self, func):
-        return LinqList([x for x in self if func(x)])
-
-    def select(self, projection):
-        return LinqList([projection(x) for x in self])
+class CarAd:
+    def __init__(self, model, engine_size, year, price, hand, transmission, location,
+                 bump_date, link):
+        self.model = model
+        self.engine_size = engine_size
+        self.year = year
+        self.price = price
+        self.hand = hand
+        self.transmission = transmission
+        self.location = location
+        self.bump_date = bump_date
+        self.link = link
 
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'

@@ -1,8 +1,8 @@
 # Goals
 1. Notify me whenever a new listing goes up
     1. Parse the page completely
-        1. Download page
-        3. Create good data structure for ad
+        1. ~~Download page~~
+        3. ~~Create good data structure for ad~~
         3. Parse into structure
     2. Parse multi pages 
     3. Find unique id for ads
