@@ -3,7 +3,8 @@
     1. Parse the page completely
         1. ~~Download page~~
         3. ~~Create good data structure for ad~~
-        3. Parse into structure
+        3. ~~Parse into structure~~
+        4. Add __repr__
     2. Parse multi pages 
     3. Find unique id for ads
     4. Store them in db

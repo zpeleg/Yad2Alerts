@@ -31,8 +31,21 @@ cell_ids = [4,  # Model name
             ]
 
 
-def to_ad_object(x):
-    return {"Model": x[4].text.strip()}
+def to_ad_object(soup):
+    def extract_td(index):
+        return soup.select('td')[index].text.strip()
+
+    return CarAd(
+        model=extract_td(4),
+        engine_size=extract_td(6),
+        year=extract_td(8),
+        price=extract_td(10),
+        hand=extract_td(12),
+        transmission=extract_td(14),
+        location=extract_td(16),
+        bump_date=extract_td(20),
+        link=soup.select('td')[21].a['href']
+    )
 
 
 def get_rows_in_page(url):
