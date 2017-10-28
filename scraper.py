@@ -15,9 +15,20 @@ class CarAd:
         self.bump_date = bump_date
         self.link = link
 
+    def __repr__(self):
+        return str(self.__dict__)
+
+class YadPage:
+    def __init__(self, pageno, link):
+        self.pageno = pageno
+        self.link = link
+
+    def __repr__(self):
+        return "Page no. {}".format(self.pageno)
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
-SAMPLE_URL = "http://www.yad2.co.il/Cars/Car.php?AreaID=&ModelID=33&SubModelID=2390&FromYear=&UntilYear=&Auto=&fromPrice=&untilPrice=&Info="
+PEUGEOT_URL = "http://www.yad2.co.il/Cars/Car.php?&ModelID=33&SubModelID=2390"
+KIA_URL = "http://www.yad2.co.il/Cars/Car.php?ModelID=40&SubModelID=1293"
 
 cell_ids = [4,  # Model name
             6,  # Engine size
@@ -48,15 +59,25 @@ def to_ad_object(soup):
     )
 
 
-def get_rows_in_page(url):
+def download_page(url):
     resp = requests.get(url, headers={'User-Agent': USER_AGENT})
-    soup = BeautifulSoup(resp.text)
+    soup = BeautifulSoup(resp.text, "lxml")
+    return soup
+
+
+def get_ads_in_page(soup):
     return [to_ad_object(x) for x in soup.select('table.main_table')[0].select('tr.showPopupUnder')]
 
 
+def get_additional_pages(soup):
+    return [YadPage(int(link.text), link['href']) for link in soup.select("a.showPopupUnder")]
+
+
 def main():
-    get_rows_in_page(
-        "http://www.yad2.co.il/Cars/Car.php?AreaID=&ModelID=33&SubModelID=2390&FromYear=&UntilYear=&Auto=&fromPrice=&untilPrice=&Info=")
+    soup = download_page(KIA_URL)
+    ads = get_ads_in_page(soup)
+    pages = get_additional_pages(soup)
+    print("Got {} ads and have {} pages".format(len(ads),len(pages)))
 
 
 if __name__ == '__main__':
