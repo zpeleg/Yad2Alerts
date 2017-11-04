@@ -1,5 +1,9 @@
+import itertools
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 
 class CarAd:
@@ -18,6 +22,7 @@ class CarAd:
     def __repr__(self):
         return str(self.__dict__)
 
+
 class YadPage:
     def __init__(self, pageno, link):
         self.pageno = pageno
@@ -26,9 +31,11 @@ class YadPage:
     def __repr__(self):
         return "Page no. {}".format(self.pageno)
 
+
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
-PEUGEOT_URL = "http://www.yad2.co.il/Cars/Car.php?&ModelID=33&SubModelID=2390"
-KIA_URL = "http://www.yad2.co.il/Cars/Car.php?ModelID=40&SubModelID=1293"
+BASE_URL = "http://www.yad2.co.il"
+PEUGEOT_URL = "/Cars/Car.php?&ModelID=33&SubModelID=2390"
+KIA_URL = "/Cars/Car.php?ModelID=40&SubModelID=1293"
 
 cell_ids = [4,  # Model name
             6,  # Engine size
@@ -59,10 +66,10 @@ def to_ad_object(soup):
     )
 
 
-def download_page(url):
-    resp = requests.get(url, headers={'User-Agent': USER_AGENT})
-    soup = BeautifulSoup(resp.text, "lxml")
-    return soup
+# def download_page(url):
+#     resp = requests.get("http://www.yad2.co.il" + url, headers={'User-Agent': USER_AGENT})
+#     soup = BeautifulSoup(resp.text, "lxml")
+#     return soup
 
 
 def get_ads_in_page(soup):
@@ -73,11 +80,34 @@ def get_additional_pages(soup):
     return [YadPage(int(link.text), link['href']) for link in soup.select("a.showPopupUnder")]
 
 
+def get_all_ads(url: str) -> List[CarAd]:
+    first_soup = download_with_phantom(url)
+    ads = [get_ads_in_page(first_soup)]
+    pages = get_additional_pages(first_soup)
+    soups = [debug("Downloading {}".format(u.pageno), download_with_phantom(u.link)) for u in pages]
+    ads.extend([get_ads_in_page(s) for s in soups])
+    ads_flattened = list(itertools.chain.from_iterable(ads))
+    return ads_flattened
+
+
+def debug(msg, itm):
+    print(msg)
+    return itm
+
+
+def download_with_phantom(url):
+    driver = webdriver.PhantomJS()
+    driver.get(BASE_URL + url)
+    source = driver.page_source
+    driver.quit()
+    #print(source)
+    return BeautifulSoup(source, "html.parser")
+
+
 def main():
-    soup = download_page(KIA_URL)
-    ads = get_ads_in_page(soup)
-    pages = get_additional_pages(soup)
-    print("Got {} ads and have {} pages".format(len(ads),len(pages)))
+    all_ads = get_all_ads(KIA_URL)
+    for a in all_ads:
+        print(a)
 
 
 if __name__ == '__main__':

@@ -8,9 +8,10 @@
     2. Parse multi pages
         1. ~~Parse urls in page~~
         2. ~~Extract to objects~~
-        3. Download rest of urls
+        3. ~~Download rest of urls~~
         4. Do that recursively to get all pages
         5. Collate all car ad objects to one
+    3. ~~Change to selenium because requests isn't working~~
     3. Test whether car salesmen appear and classify them as such
     3. Find unique id for ads
     4. Store them in db
