@@ -66,26 +66,27 @@ def to_ad_object(soup):
     )
 
 
-# def download_page(url):
-#     resp = requests.get("http://www.yad2.co.il" + url, headers={'User-Agent': USER_AGENT})
-#     soup = BeautifulSoup(resp.text, "lxml")
-#     return soup
-
-
 def get_ads_in_page(soup):
     return [to_ad_object(x) for x in soup.select('table.main_table')[0].select('tr.showPopupUnder')]
 
 
-def get_additional_pages(soup):
+def get_additional_pages(soup: BeautifulSoup) -> List[YadPage]:
     return [YadPage(int(link.text), link['href']) for link in soup.select("a.showPopupUnder")]
 
 
 def get_all_ads(url: str) -> List[CarAd]:
-    first_soup = download_with_phantom(url)
+    # Create downloader
+    downloader = PhantomDownloader()
+    downloader.start()
+    # Download first page
+    first_soup = downloader.download(url)
+    # Download the pages
+    page_urls = get_additional_pages(first_soup)
+    # Download the ads
     ads = [get_ads_in_page(first_soup)]
-    pages = get_additional_pages(first_soup)
-    soups = [debug("Downloading {}".format(u.pageno), download_with_phantom(u.link)) for u in pages]
-    ads.extend([get_ads_in_page(s) for s in soups])
+    page_soups = [debug("Downloading {}".format(u.pageno), downloader.download(u.link)) for u in page_urls]
+    downloader.stop()
+    ads.extend([get_ads_in_page(s) for s in page_soups])
     ads_flattened = list(itertools.chain.from_iterable(ads))
     return ads_flattened
 
@@ -95,12 +96,26 @@ def debug(msg, itm):
     return itm
 
 
+class PhantomDownloader:
+    def __init__(self):
+        self.driver = None
+
+    def start(self):
+        self.driver = webdriver.PhantomJS()
+
+    def stop(self):
+        self.driver.quit()
+
+    def download(self, url) -> BeautifulSoup:
+        self.driver.get(BASE_URL + url)
+        return BeautifulSoup(self.driver.page_source, "html.parser")
+
+
 def download_with_phantom(url):
     driver = webdriver.PhantomJS()
     driver.get(BASE_URL + url)
     source = driver.page_source
     driver.quit()
-    #print(source)
     return BeautifulSoup(source, "html.parser")
 
 
